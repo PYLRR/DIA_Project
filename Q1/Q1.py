@@ -1,81 +1,72 @@
 import numpy as np
 import math
 import environment.graph as graph
+import environment.auctionHouse as auctionHouse
+import MonteCarlo as MonteCarlo
+import matplotlib.pyplot as plt
 
-
-# Single Monte-Carlo run
-def simulate_episode(init_prob_matrix, initial_active_nodes, n_steps_max):
-    prob_matrix = init_prob_matrix.copy()
-    history = np.array([initial_active_nodes])
-    active_nodes = initial_active_nodes
-    newly_active_nodes = active_nodes
-
-    t = 0
-    while t < n_steps_max and np.sum(newly_active_nodes) > 0:
-        p = (prob_matrix.T * active_nodes).T
-        activated_edges = p > np.random.rand(p.shape[0], p.shape[1])
-        prob_matrix = prob_matrix * ((p != 0) == activated_edges)
-        newly_active_nodes = (np.sum(activated_edges, axis=0) > 0) * (1 - active_nodes)
-        active_nodes = np.array(active_nodes + newly_active_nodes)
-        history = np.concatenate((history, [newly_active_nodes]), axis=0)
-        t += 1
-    return history
-
+# prob to click on the ad knowing we looked at it
+AD_QUALITY = 0.7
 
 np.random.seed(0)
 
-NB_ADVERTISERS = 3
-NB_CATEGORIES = 5
-NB_SLOTS = 6  # currently unused
-n_nodes = 15
-n_episodes = 1000  # nb of Monte-Carlo we run
+### BIDS/AUCTIONS
+# randomize the bids, may be improved later
+bids = np.random.randint(0, auctionHouse.MAX_BID + 1,
+                         (auctionHouse.NB_ADVERTISERS, auctionHouse.NB_CATEGORIES))
 
-# create a graph (with extra nodes per category to model click probability)
-graph = graph.Graph(n_nodes, stochasticitySeed=0)
-graph.display()  # just display that in case there are problems with networkx lib
-
-# randomize the bids for now, may be improved later
-bids = []
-for i in range(NB_ADVERTISERS):  # advertisers
-    # a bid for each category, belonging to {0,1,2,3,4}
-    bids.append(np.random.randint(0, 5, NB_CATEGORIES))
 # gets winner of each category
-winners = []
-for j in range(NB_CATEGORIES):
-    maxi = 0
-    for i in range(NB_ADVERTISERS):
-        if bids[i][j] > bids[maxi][j]:
-            maxi = i
-    winners.append(maxi)
+winners = auctionHouse.runAuction(bids)
 
-# now get prepared for the Monte-Carlo
-dataset = []  # will contain histories of Monte-Carlo runs
-# 1 for category won by us (advertiser 0) 0 for others
-seedsArray = []
-for i in range(n_nodes + NB_CATEGORIES):
-    if i >= n_nodes and winners[i - n_nodes] == 0:
-        seedsArray.append(1)
+# wonArray[i]=j if jth slot won for category i (the learning advertiser is the advertiser 0)
+learningAdvertiserWonAuctions = np.full(auctionHouse.NB_CATEGORIES, -1)
+wonCategories = []
+for i in range(auctionHouse.NB_CATEGORIES):
+    for j in range(auctionHouse.NB_SLOTS_PER_CATEGORY):
+        if winners[i, j] == 0:  # the learning advertiser won slot j for category i
+            learningAdvertiserWonAuctions[i] = j
+            wonCategories.append(i)
+
+# get click probability of each category knowing the slot we have
+clickProb = []
+for slot in learningAdvertiserWonAuctions:
+    if slot == -1:
+        # we didnt win any slot for this category
+        # this click probability is then only useful for cascade
+        # and for this purpose we assume we have the worst slot
+        slotProminence = auctionHouse.SLOT_PROMINENCES[auctionHouse.NB_SLOTS_PER_CATEGORY - 1]
     else:
-        seedsArray.append(0)
-seeds = np.array(seedsArray)
+        slotProminence = auctionHouse.SLOT_PROMINENCES[slot]
+    clickProb.append(slotProminence * AD_QUALITY)
 
-# simulations
-for e in range(n_episodes):
-    dataset.append(simulate_episode(graph.prob_matrix, seeds, n_steps_max=15))
+### GRAPH
+graph = graph.Graph(clickProb, stochasticitySeed=0)
+graph.display()  # just disable that in case there are problems with networkx lib
 
-# let's count the activations of each node
-scores = np.zeros(n_nodes + NB_CATEGORIES)
-for history in dataset:
-    unactivated_nodes = list(range(n_nodes + NB_CATEGORIES))
-    for state in history:
-        for i in unactivated_nodes:
-            if state[i] == 1:
-                scores[i] += 1
-                unactivated_nodes.remove(i)
-scores /= n_episodes
-print("\nestimated probabilities of activation : \n", scores)
+# compute the seeds (all the fictious nodes connected to a won category node)
+seeds = np.zeros(graph.nbNodes * 2)
+for category in wonCategories:
+    for node in graph.nodePerCategory[category]:
+        seeds[node + graph.nbNodes] = 1  # add the corresponding fictious node in seeds
 
-# computation of estimation fiability
+### MONTECARLO
+x = []
+y = []
+i = 0
+for n_episodes in range(1, 1000, 10):
+    activationProbabilities = MonteCarlo.run(graph, seeds, n_episodes, 15)
+    # avg nb of activated nodes is just the sum of the probabilities of activation of each node (not the fictious ones)
+    averageNbOfActivatedNodes = np.sum(activationProbabilities[:graph.nbNodes])
+    x.append(n_episodes)
+    y.append(averageNbOfActivatedNodes)
+
+plt.plot(x,y)
+plt.show()
+
+# value stabilized for 250 iterations, we can use it
+optimalNb = 250
+
+# computation of estimation fiability bound
 precision_sigma = 0.05
-precision = math.sqrt(math.log(np.count_nonzero(seeds)) * math.log(1/precision_sigma) / n_episodes)
-print("\nprecision per node with p >",100*(1-precision_sigma),"% : ",precision)
+precision = math.sqrt(math.log(np.count_nonzero(seeds)) * math.log(1 / precision_sigma) / optimalNb)
+print("\nprecision of pActivation per node with p >", 100 * (1 - precision_sigma), "% : ", precision)
