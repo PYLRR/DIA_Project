@@ -60,11 +60,14 @@ for n_episodes in range(1, 1000, 10):
     x.append(n_episodes)
     y.append(averageNbOfActivatedNodes)
 
+plt.xlabel('number of iterations')
+plt.ylabel('average number of activated nodes')
+plt.title('Estimations of average number of activated nodes when iterations vary')
 plt.plot(x,y)
 plt.show()
 
-# value stabilized for 250 iterations, we can use it
-optimalNb = 250
+# value stabilized for 200 iterations, we can use it
+optimalNb = 200
 
 # computation of estimation fiability bound
 precision_sigma = 0.05
