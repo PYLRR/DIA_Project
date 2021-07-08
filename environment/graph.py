@@ -6,7 +6,7 @@ import warnings
 import environment.auctionHouse as auctionHouse
 
 MIN_SOCIAL_INFLUENCE_PROB = 0.0
-MAX_SOCIAL_INFLUENCE_PROB = 0.1
+MAX_SOCIAL_INFLUENCE_PROB = 0.2
 
 N_NODES = 15
 
@@ -18,10 +18,7 @@ N_NODES = 15
 # Edge weight from real node to other fictious nodes is the influence probability (random)
 class Graph:
     # clickProbabilities : array (nbCategories) representing the final click probability of each category
-    def __init__(self, clickProbabilities, nbNodes=N_NODES, stochasticitySeed=0,
-                 minSocialInfluProb=MIN_SOCIAL_INFLUENCE_PROB, maxSocialInfluProb=MAX_SOCIAL_INFLUENCE_PROB):
-        # with that, every execution will lead to the same random generated values
-        np.random.seed(stochasticitySeed)
+    def __init__(self, nbNodes=N_NODES):
 
         self.nbNodes = nbNodes
 
@@ -32,6 +29,9 @@ class Graph:
         # we create exactly nbNodes*2 nodes, so that we have 1 extra node per node
         # (it will be the node enabling to separate click probability from social influence)
         self.prob_matrix = np.zeros((self.nbNodes * 2, self.nbNodes * 2), float)
+
+    def changeTransitionProbabilities(self, clickProbabilities, minSocialInfluProb=MIN_SOCIAL_INFLUENCE_PROB,
+                                 maxSocialInfluProb=MAX_SOCIAL_INFLUENCE_PROB):
         for i in range(self.nbNodes * 2):  # line
             for j in range(self.nbNodes * 2):  # column
                 if i == j + self.nbNodes:  # red node i' to green node i

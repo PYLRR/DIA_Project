@@ -40,7 +40,8 @@ for slot in learningAdvertiserWonAuctions:
     clickProb.append(slotProminence * AD_QUALITY)
 
 ### GRAPH
-graph = graph.Graph(clickProb, stochasticitySeed=0)
+graph = graph.Graph()
+graph.changeTransitionProbabilities(clickProb)
 graph.display()  # just disable that in case there are problems with networkx lib
 
 # compute the seeds (all the fictious nodes connected to a won category node)
@@ -52,9 +53,8 @@ for category in wonCategories:
 ### MONTECARLO
 x = []
 y = []
-i = 0
-for n_episodes in range(1, 1000, 10):
-    activationProbabilities = MonteCarlo.run(graph, seeds, n_episodes, 15)
+for n_episodes in range(1, 1000, 1):
+    activationProbabilities = MonteCarlo.run(graph, seeds, n_episodes)
     # avg nb of activated nodes is just the sum of the probabilities of activation of each node (not the fictious ones)
     averageNbOfActivatedNodes = np.sum(activationProbabilities[:graph.nbNodes])
     x.append(n_episodes)
@@ -66,8 +66,8 @@ plt.title('Estimations of average number of activated nodes when iterations vary
 plt.plot(x,y)
 plt.show()
 
-# value stabilized for 200 iterations, we can use it
-optimalNb = 200
+# value precise enough for n iterations
+optimalNb = 250
 
 # computation of estimation fiability bound
 precision_sigma = 0.05

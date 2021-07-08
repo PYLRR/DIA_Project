@@ -20,7 +20,7 @@ def simulate_episode(init_prob_matrix, initial_active_nodes, n_steps_max):
     return history
 
 
-def run(graph,seeds, n_episodes, n_steps_max):
+def run(graph,seeds, n_episodes):
     dataset = []  # will contain histories of Monte-Carlo runs
 
     # simulations
