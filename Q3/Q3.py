@@ -8,10 +8,13 @@ import Q1.MonteCarlo as MonteCarlo
 VALUE_OF_CLICK = 2
 # prob to click on the ad knowing we looked at it
 AD_QUALITY = 0.7
+
+np.random.seed(0)
+
 # Ad qualities of all advertisers (0 is the learning one)
 AdQualitiesVector = np.random.random(auctionHouse.NB_ADVERTISERS)
 
-np.random.seed(0)
+
 
 ### GRAPH
 graph = graph.Graph()
@@ -40,39 +43,12 @@ while not stabilized:
 
     # gets winner of each category
     winners = auctionHouse.runAuction(bids)
-
-    # wonArray[i]=j if jth slot won for category i (the learning advertiser is the advertiser 0)
-    learningAdvertiserWonAuctions = np.full(auctionHouse.NB_CATEGORIES, -1)
-    wonCategories = []
-    for i in range(auctionHouse.NB_CATEGORIES):
-        for j in range(auctionHouse.NB_SLOTS_PER_CATEGORY):
-            if winners[i, j] == 0:  # the learning advertiser won slot j for category i
-                learningAdvertiserWonAuctions[i] = j
-                wonCategories.append(i)
-
-    # get click probability of each category knowing the slot we have
-    clickProb = []
-    for slot in learningAdvertiserWonAuctions:
-        if slot == -1:
-            # we didnt win any slot for this category
-            # this click probability is then only useful for cascade
-            # and for this purpose we assume we have the worst slot
-            slotProminence = auctionHouse.SLOT_PROMINENCES[auctionHouse.NB_SLOTS_PER_CATEGORY - 1]
-        else:
-            slotProminence = auctionHouse.SLOT_PROMINENCES[slot]
-        clickProb.append(slotProminence * AD_QUALITY)
-
-    graph.changeTransitionProbabilities(clickProb)
-
-    # compute the seeds (all the fictious nodes connected to a won category node)
-    seeds = np.zeros(graph.nbNodes * 2)
-    for category in wonCategories:
-        for node in graph.nodePerCategory[category]:
-            seeds[node + graph.nbNodes] = 1  # add the corresponding fictious node in seeds
+    learningAdvertiserWonAuctions = graph.updateFromAuctionResult(winners, AD_QUALITY)
 
     ### MONTECARLO
-    activationProbabilities = MonteCarlo.run(graph, seeds, 2000)
-    # avg nb of activated nodes is just the sum of the probabilities of activation of each node (not the fictious ones)
+    activationProbabilities = MonteCarlo.run(graph, graph.seeds, 2000)
+
+    # compute gain
     gain = 0
     for i in range(graph.nbNodes):
         cat = graph.categoriesPerNode[i]
