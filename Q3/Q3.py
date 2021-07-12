@@ -12,9 +12,7 @@ AD_QUALITY = 0.7
 np.random.seed(0)
 
 # Ad qualities of all advertisers (0 is the learning one)
-AdQualitiesVector = np.random.random(auctionHouse.NB_ADVERTISERS)
-
-
+AdQualitiesVector = np.clip(np.random.normal(0.5, 0.1, auctionHouse.NB_ADVERTISERS), 0.1, 0.9)
 
 ### GRAPH
 graph = graph.Graph()
@@ -25,7 +23,7 @@ bids = np.random.randint(0, auctionHouse.MAX_BID + 1,
                          (auctionHouse.NB_ADVERTISERS, auctionHouse.NB_CATEGORIES))
 bids[0] = np.zeros(auctionHouse.NB_CATEGORIES)  # set bids of current advertiser to 0
 
-previousReward = 0 # when bids are 0, the reward will be 0
+previousReward = 0  # when bids are 0, the reward will be 0
 currentImprovedCategory = 0  # to jump to 0 at next iteration
 nbOfTurnsWithoutImprovement = 0  # if it reaches NB_CATEGORIES, the greedy algorithm stops
 stabilized = False
@@ -46,7 +44,7 @@ while not stabilized:
     learningAdvertiserWonAuctions = graph.updateFromAuctionResult(winners, AD_QUALITY)
 
     ### MONTECARLO
-    activationProbabilities = MonteCarlo.run(graph, graph.seeds, 2000)
+    activationProbabilities = MonteCarlo.run(graph, graph.seeds, 2000)[1]
 
     # compute gain
     gain = 0

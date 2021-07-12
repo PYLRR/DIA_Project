@@ -2,9 +2,9 @@ import numpy as np
 
 
 class LinUcbLearner:
-    def __init__(self, arms_features):
-        self.arms = arms_features
-        self.dim = arms_features.shape[1]
+    def __init__(self, arms):
+        self.arms = arms
+        self.dim = arms.shape[1]
         self.collected_rewards = []
         self.pulled_arms = []
         self.c = 2.0

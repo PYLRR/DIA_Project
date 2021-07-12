@@ -1,20 +1,98 @@
 import numpy as np
 from LinearMabEnvironment import LinearMabEnvironment
 from LinUcbLearner import LinUcbLearner
+import environment.auctionHouse as auctionHouse
 
-n_arms = 15
-T = 100
-n_experiments = 50
+np.random.seed(1)
+
+n_arms = 20
+n_experiments = 500
 lin_ucb_rewards_per_experiment = []
 
 env = LinearMabEnvironment(n_arms=n_arms)
-learner = LinUcbLearner(env.arms_features)
+learner = LinUcbLearner(env.arms)
 
 for i in range(n_experiments):
     arm = learner.pull_arm()
-    reward = env.round(arm)
+    reward = env.round(learner.arms[arm])
     learner.update(arm, reward)
 
 bestArm = np.argmax(learner.meanRewardPerArm)
-print("best arm : "+str(bestArm)+" with a mean reward of "+str(learner.meanRewardPerArm[bestArm]))
-print("bids of the best arm : "+str(learner.arms[bestArm]))
+print("best arm : " + str(bestArm) + " with a mean reward of " + str(learner.meanRewardPerArm[bestArm]))
+print("bids of the best arm : " + str(learner.arms[bestArm]))
+
+
+# in : matrix of history of activations (n_experiments x length_sim x nbNodes)
+# out : estimation of the ad_quality
+# in the graph, activations are like the following :
+#       Activation           Click
+# node i -> fictitious node j -> node j
+#
+# Assuming activation is known, and that click probability is slot_prominence*ad_quality
+# we can estimate the click probability and divide it by slot_prominence to get ad_quality
+def estimate_ad_quality(dataset, graph, learningAdvertiserWonAuctionsHistory, considerOnlyFirstSlot=True):
+    n_nodes = env.graph.nbNodes
+    # when some node activates, we consider its ancestor and give it specific credit for our node slot
+    # this separation of ancestors is done because the slot prominence will be different between 2 slots (while same ad)
+    # Notice that when considerOnlyFirstSlot is true, we only consider the first slot.
+    activationsForGivenSlot = np.zeros(auctionHouse.NB_SLOTS_PER_CATEGORY)
+    fictitiousActivationsForGivenSlot = np.zeros(auctionHouse.NB_SLOTS_PER_CATEGORY)
+
+    episodeCount = 0
+    for episode in dataset:
+        learningAdvertiserWonAuctions = learningAdvertiserWonAuctionsHistory[episodeCount]
+        idx_w_active = np.argwhere(episode[:, :graph.nbNodes] == 1).reshape(
+            -1)  # find active nodes, excluding fictitious ones
+
+        for i in range(0, len(idx_w_active), 2):
+            slot = learningAdvertiserWonAuctions[graph.categoriesPerNode[idx_w_active[i + 1]]]
+            if slot == -1:
+                slot = auctionHouse.NB_SLOTS_PER_CATEGORY-1 # last slot if no one allocated
+            # we don't need to browse for previously activated nodes.
+            # indeed, a node only activates if its fictitious node was previously activated. So we know it has been.
+            # it will be an addition of 1 as we have only 1 ancestor
+            activationsForGivenSlot[slot] += 1
+
+        # we will now get the activations of fictitious nodes
+        idx_v_active = np.argwhere(episode[:, graph.nbNodes:] == 1).reshape(
+            -1)  # find fictitious nodes, excluding active ones
+
+        for i in range(0, len(idx_v_active), 2):
+            slot = learningAdvertiserWonAuctions[graph.categoriesPerNode[idx_v_active[i + 1]-graph.nbNodes]]
+            if slot == -1:
+                slot = auctionHouse.NB_SLOTS_PER_CATEGORY - 1  # last slot if no one allocated
+            fictitiousActivationsForGivenSlot[slot] += 1
+
+        episodeCount += 1
+
+    maxSlotToConsider = auctionHouse.NB_SLOTS_PER_CATEGORY-1
+    if considerOnlyFirstSlot:
+        maxSlotToConsider = 0
+
+    totalEstimation = 0
+    divider = 0
+    for slot in range(maxSlotToConsider + 1):
+        if fictitiousActivationsForGivenSlot[slot] == 0:
+            clickProbabilityForCurrentSlot = 0
+        else:
+            clickProbabilityForCurrentSlot = activationsForGivenSlot[slot] / fictitiousActivationsForGivenSlot[slot]
+            divider += fictitiousActivationsForGivenSlot[slot]
+        totalEstimation += fictitiousActivationsForGivenSlot[slot] * clickProbabilityForCurrentSlot / auctionHouse.SLOT_PROMINENCES[slot]
+    totalEstimation /= divider
+
+    return totalEstimation, divider
+
+print("-------------")
+
+estimation, n = estimate_ad_quality(env.history, env.graph, env.learningAdvertiserWonAuctionsHistory)
+
+print("estimation of ad quality with first slot considered : " + str(estimation) + " vs real : " + str(env.adQualitiesVector[0]))
+d = 1.96*(estimation*(1-estimation))**0.5/n**0.5
+print("Confidence interval with 95% : ["+str(estimation-d)+";"+str(estimation+d)+"]")
+
+print("-------------")
+
+estimation, n = estimate_ad_quality(env.history, env.graph, env.learningAdvertiserWonAuctionsHistory, False)
+print("estimation of ad quality with all slots considered : " + str(estimation) + " vs real : " + str(env.adQualitiesVector[0]))
+d = 1.96*(estimation*(1-estimation))**0.5/n**0.5
+print("Confidence interval with 95% : ["+str(estimation-d)+";"+str(estimation+d)+"]")

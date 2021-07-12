@@ -29,7 +29,7 @@ y = []
 meanNbOfActivated = 0
 maxNbIterations = 1000
 for n_episodes in range(1, maxNbIterations, 1):
-    activationProbabilities = MonteCarlo.run(graph, graph.seeds, n_episodes)
+    activationProbabilities = MonteCarlo.run(graph, graph.seeds, n_episodes)[1]
     # avg nb of activated nodes is just the sum of the probabilities of activation of each node (not the fictious ones)
     averageNbOfActivatedNodes = np.sum(activationProbabilities[:graph.nbNodes])
     x.append(n_episodes)

@@ -1,5 +1,6 @@
 import numpy as np
 
+
 # Single Monte-Carlo run
 def simulate_episode(init_prob_matrix, initial_active_nodes, n_steps_max):
     prob_matrix = init_prob_matrix.copy()
@@ -20,7 +21,7 @@ def simulate_episode(init_prob_matrix, initial_active_nodes, n_steps_max):
     return history
 
 
-def run(graph,seeds, n_episodes):
+def run(graph, seeds, n_episodes):
     dataset = []  # will contain histories of Monte-Carlo runs
 
     # simulations
@@ -37,4 +38,4 @@ def run(graph,seeds, n_episodes):
                     scores[i] += 1
                     unactivated_nodes.remove(i)
     scores /= n_episodes
-    return scores
+    return dataset, scores

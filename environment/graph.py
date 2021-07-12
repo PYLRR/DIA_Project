@@ -6,7 +6,7 @@ import warnings
 import environment.auctionHouse as auctionHouse
 
 MIN_SOCIAL_INFLUENCE_PROB = 0.0
-MAX_SOCIAL_INFLUENCE_PROB = 0.2
+MAX_SOCIAL_INFLUENCE_PROB = 0.5
 
 N_NODES = 15
 

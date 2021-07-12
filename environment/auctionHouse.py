@@ -8,22 +8,23 @@ NB_SLOTS_PER_CATEGORY = 6
 MAX_BID = 4
 
 # array (nbSlotsPerCategory) representing the view prob of each slot
-SLOT_PROMINENCES = [0.5, 0.45, 0.4, 0.35, 0.3, 0.2]
+SLOT_PROMINENCES = [0.5, 0.45, 0.35, 0.3, 0.2, 0.15]
 
 
 # input : np matrix (nbAdvertisers,nbCategories) representing the bid of each advertiser to each category
 # output : np matrix (nbCategories,nbSlotsPerCategory) representing the affectation of each slot of each category
 def runAuction(bids):
-    np.random.seed(0)
     res = np.zeros((NB_CATEGORIES, NB_SLOTS_PER_CATEGORY))
+    bidsToConsider = np.flip(bids,0)
+
 
     for i in range(NB_CATEGORIES):
         # sort advertisers in decreasing bid order for this category
-        sorted_advertisers = bids[np.argsort(bids[:, i])][::-1]
+        sorted_advertisers = bidsToConsider[np.argsort(bidsToConsider[:, i])][::-1]
         for j in range(NB_SLOTS_PER_CATEGORY):
             # set the jth best bid of this category to the slot j
             try:
-                res[i, j] = np.where(np.all(bids == sorted_advertisers[j], axis=1))[0][0]
+                res[i, j] = (bids.shape[0]-1) - np.where(np.all(bidsToConsider == sorted_advertisers[j], axis=1))[0][0]
             except:  # triggered if nbAdvertisers < nbSlotsPerCategory
                 res[i, j] = -1
     return res
