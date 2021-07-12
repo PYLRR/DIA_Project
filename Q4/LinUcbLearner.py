@@ -7,17 +7,12 @@ class LinUcbLearner:
         self.dim = arms.shape[1]
         self.collected_rewards = []
         self.pulled_arms = []
-        self.c = 2.0
-        self.M = np.identity(self.dim)
-        self.b = np.atleast_2d(np.zeros(self.dim)).T
-        self.theta = np.dot(np.linalg.inv(self.M), self.b)
 
         self.meanRewardPerArm = np.zeros(len(self.arms))
         self.timesPlayed = np.zeros(len(self.arms))
         self.t = 0
 
     def compute_ucbs(self):
-        self.theta = np.dot(np.linalg.inv(self.M), self.b)
         ucbs = np.zeros(len(self.arms))
         for arm in range(len(self.arms)):
             mean = self.meanRewardPerArm[arm]
@@ -32,10 +27,6 @@ class LinUcbLearner:
         return np.argmax(ucbs)
 
     def update_estimation(self, arm_idx, reward):
-        arm = np.atleast_2d(self.arms[arm_idx]).T
-        self.M += np.dot(arm, arm.T)
-        self.b += reward * arm
-
         self.timesPlayed[arm_idx] += 1
         n = self.timesPlayed[arm_idx]
         # running mean
