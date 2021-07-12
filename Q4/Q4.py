@@ -1,6 +1,7 @@
 import numpy as np
 from LinearMabEnvironment import LinearMabEnvironment
 from LinUcbLearner import LinUcbLearner
+from TSLearner import TSLearner
 import environment.auctionHouse as auctionHouse
 import matplotlib.pyplot as plt
 
@@ -11,7 +12,7 @@ n_experiments = 1000
 lin_ucb_rewards_per_experiment = []
 
 env = LinearMabEnvironment(n_arms=n_arms)
-learner = LinUcbLearner(env.arms)
+learner = TSLearner(env.arms)
 
 for i in range(n_experiments):
     arm = learner.pull_arm()
@@ -109,6 +110,8 @@ for i in range(1, n_experiments):
     reward = learner.collected_rewards[i]
     meanReward.append(i * meanReward[i - 1] / (i + 1) + reward / (i + 1))
 
+### PLOTS
+# Plot mean reward
 x = range(n_experiments)
 ymax = np.full(n_experiments, bestReward)
 
@@ -119,6 +122,7 @@ plt.plot(x, meanReward, 'k-')
 plt.plot(x,ymax, 'r-')
 plt.show()
 
+# Plot cum reward
 y = np.cumsum(learner.collected_rewards)
 ymaxCum = np.cumsum(ymax)
 plt.xlabel('number of iterations')
@@ -128,6 +132,9 @@ plt.plot(x, y, 'k-')
 plt.plot(x,ymaxCum, 'r-')
 plt.show()
 
+np.random.normal
+
+# Plot regret
 y = np.cumsum(learner.collected_rewards)
 ymaxCum = np.cumsum(ymax)
 plt.xlabel('number of iterations')
