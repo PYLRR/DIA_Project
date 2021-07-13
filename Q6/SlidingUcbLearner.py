@@ -12,8 +12,8 @@ class SlidingUcbLearner:
         self.timesPlayed = np.zeros(len(self.arms))
         self.t = 0
 
-        self.windowSize = 30
-        self.history = np.full((len(self.arms), self.windowSize), -1)
+        self.windowSize = 50
+        self.history = np.full((len(self.arms), self.windowSize), np.nan)
         self.index = 0  # index where we do the next insert in the window
 
     def compute_ucbs(self):
@@ -33,17 +33,18 @@ class SlidingUcbLearner:
     def update_estimation(self, arm_idx, reward):
         self.timesPlayed[arm_idx] += 1
 
-        self.history[:, self.index] = -1 # set no value to other arms
+        self.history[:, self.index] = np.nan # set no value to other arms
         self.history[arm_idx,self.index] = reward
         self.index = (self.index + 1) % self.windowSize
 
-        relevantHistoryValues = self.history[arm_idx] >= 0
+        # recompute mean and n of each arm
+        for arm in range(len(self.arms)):
+            relevantHistoryValues = ~np.isnan(self.history[arm])
+            mean = np.mean(self.history[arm,relevantHistoryValues])
+            self.meanRewardPerArm[arm] = mean
 
-        mean = np.mean(self.history[arm_idx,relevantHistoryValues])
-        self.meanRewardPerArm[arm_idx] = mean
-
-        n = np.count_nonzero(relevantHistoryValues)
-        self.timesPlayed[arm_idx] = n
+            n = np.count_nonzero(relevantHistoryValues)
+            self.timesPlayed[arm] = n
 
     def update(self, arm_idx, reward):
         self.t += 1
@@ -51,3 +52,7 @@ class SlidingUcbLearner:
             self.pulled_arms.append(arm_idx)
         self.collected_rewards.append(reward)
         self.update_estimation(arm_idx, reward)
+
+    def getBestArm(self):
+        best = np.argmax(self.meanRewardPerArm[:])
+        return best, self.meanRewardPerArm[best]
