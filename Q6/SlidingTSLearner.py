@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class TSLearner:
+class SlidingTSLearner:
     def __init__(self, arms):
         self.arms = arms
         self.dim = arms.shape[1]

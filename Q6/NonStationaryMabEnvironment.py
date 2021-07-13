@@ -27,7 +27,7 @@ class NonStationaryMabEnvironment:
         self.learningAdvertiserWonAuctionsHistory = []
 
         # chances for each advertiser to change its bid at each time step
-        self.changeProbability = 0.05
+        self.changeProbability = 0.1
 
     def computeAbruptChanges(self):
         for i in range(1, self.bids.shape[0]):

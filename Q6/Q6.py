@@ -1,14 +1,14 @@
 import numpy as np
 from NonStationaryMabEnvironment import NonStationaryMabEnvironment
 from SlidingUcbLearner import SlidingUcbLearner
-from TSLearner import TSLearner
+from SlidingTSLearner import SlidingTSLearner
 import environment.auctionHouse as auctionHouse
 import matplotlib.pyplot as plt
 
 np.random.seed(1)
 
 n_arms = 15
-n_experiments = 1000
+n_experiments = 10000
 lin_ucb_rewards_per_experiment = []
 
 env = NonStationaryMabEnvironment(n_arms=n_arms)
@@ -131,8 +131,6 @@ plt.title('Cumulated reward in function of iterations')
 plt.plot(x, y, 'k-')
 plt.plot(x,ymaxCum, 'r-')
 plt.show()
-
-np.random.normal
 
 # Plot regret
 y = np.cumsum(learner.collected_rewards)
