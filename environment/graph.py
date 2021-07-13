@@ -30,8 +30,32 @@ class Graph:
         # (it will be the node enabling to separate click probability from social influence)
         self.prob_matrix = np.zeros((self.nbNodes * 2, self.nbNodes * 2), float)
 
+        # generate a random connectivity matrix
+        self.connectivity_matrix = self.generateConnectivityMatrix()
+
+        # generate the activation probabilities matrix
+        self.activation_probabilities_matrix = np.random.uniform(size=(self.nbNodes, self.nbNodes))
+
         # no seed by default
         self.seeds = np.zeros(self.nbNodes * 2)
+
+    # This will generate a random matrix N x N
+    # out will show how are nodes are connected to each other
+    def generateConnectivityMatrix(self):
+        connection_matrix = np.random.randint(0, 1 + 1, (self.nbNodes, self.nbNodes))
+        np.fill_diagonal(connection_matrix, 0)
+        return connection_matrix
+
+
+    def changeTransitionProbabilities2(self, clickProbabilities, activationProbability):
+        for i in range(self.nbNodes):
+            # line
+            # red node i' to green node i
+            self.prob_matrix[i + self.nbNodes, i] = clickProbabilities[self.categoriesPerNode[i]]
+            for j in range(self.nbNodes):
+                # column
+                # green node i to red node j' (i!=j)
+                self.prob_matrix[i, j + self.nbNodes] = self.connectivity_matrix[i][j] * activationProbability[i][j]
 
     def changeTransitionProbabilities(self, clickProbabilities, minSocialInfluProb=MIN_SOCIAL_INFLUENCE_PROB,
                                       maxSocialInfluProb=MAX_SOCIAL_INFLUENCE_PROB):
@@ -64,7 +88,8 @@ class Graph:
             else:
                 slotProminence = auctionHouse.SLOT_PROMINENCES[slot]
             clickProb.append(slotProminence * ad_quality)
-        self.changeTransitionProbabilities(clickProb)
+        # self.changeTransitionProbabilities(clickProb)
+        self.changeTransitionProbabilities2(clickProb, self.activation_probabilities_matrix)
 
         # Seeds update
 
