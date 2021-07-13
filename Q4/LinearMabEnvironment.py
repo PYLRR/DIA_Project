@@ -38,7 +38,6 @@ class LinearMabEnvironment:
 
         self.learningAdvertiserWonAuctionsHistory.append(self.learningAdvertiserWonAuctions)
 
-        # self.graph.display()
         # run exactly 1 simulation (it's not really a montecarlo but the method does the job)
         historyDataset, activations = MonteCarlo.run(
             self.graph, self.graph.seeds, 1)

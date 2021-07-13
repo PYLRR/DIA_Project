@@ -40,14 +40,14 @@ class Graph:
         self.seeds = np.zeros(self.nbNodes * 2)
 
     # This will generate a random matrix N x N
-    # out will show how are nodes are connected to each other
+    # out will show how are nodes connected to each other
     def generateConnectivityMatrix(self):
         connection_matrix = np.random.randint(0, 1 + 1, (self.nbNodes, self.nbNodes))
         np.fill_diagonal(connection_matrix, 0)
         return connection_matrix
 
 
-    def changeTransitionProbabilities2(self, clickProbabilities, activationProbability):
+    def changeTransitionProbabilities(self, clickProbabilities):
         for i in range(self.nbNodes):
             # line
             # red node i' to green node i
@@ -55,16 +55,7 @@ class Graph:
             for j in range(self.nbNodes):
                 # column
                 # green node i to red node j' (i!=j)
-                self.prob_matrix[i, j + self.nbNodes] = self.connectivity_matrix[i][j] * activationProbability[i][j]
-
-    def changeTransitionProbabilities(self, clickProbabilities, minSocialInfluProb=MIN_SOCIAL_INFLUENCE_PROB,
-                                      maxSocialInfluProb=MAX_SOCIAL_INFLUENCE_PROB):
-        for i in range(self.nbNodes * 2):  # line
-            for j in range(self.nbNodes * 2):  # column
-                if i == j + self.nbNodes:  # red node i' to green node i
-                    self.prob_matrix[i, j] = clickProbabilities[self.categoriesPerNode[j]]
-                if i < self.nbNodes <= j != i + self.nbNodes:  # green node i to red node j' (i!=j)
-                    self.prob_matrix[i, j] = np.random.uniform(minSocialInfluProb, maxSocialInfluProb)
+                self.prob_matrix[i, j + self.nbNodes] = self.connectivity_matrix[i][j] * self.activation_probabilities_matrix[i][j]
 
     # updates transition probabilities and seeds from the results of an auction
     def updateFromAuctionResult(self, auctionResults, ad_quality):
@@ -88,8 +79,7 @@ class Graph:
             else:
                 slotProminence = auctionHouse.SLOT_PROMINENCES[slot]
             clickProb.append(slotProminence * ad_quality)
-        # self.changeTransitionProbabilities(clickProb)
-        self.changeTransitionProbabilities2(clickProb, self.activation_probabilities_matrix)
+        self.changeTransitionProbabilities(clickProb)
 
         # Seeds update
 
