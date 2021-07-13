@@ -12,7 +12,7 @@ class SlidingUcbLearner:
         self.timesPlayed = np.zeros(len(self.arms))
         self.t = 0
 
-        self.windowSize = 100
+        self.windowSize = 50
         self.history = np.full((len(self.arms), self.windowSize), np.nan)
         self.index = 0  # index where we do the next insert in the window
 
@@ -52,3 +52,7 @@ class SlidingUcbLearner:
             self.pulled_arms.append(arm_idx)
         self.collected_rewards.append(reward)
         self.update_estimation(arm_idx, reward)
+
+    def getBestArm(self):
+        best = np.argmax(self.meanRewardPerArm[:])
+        return best, self.meanRewardPerArm[best]

@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 np.random.seed(1)
 
 n_arms = 15
-n_experiments = 10000
+n_experiments = 200
 lin_ucb_rewards_per_experiment = []
 
 env = NonStationaryMabEnvironment(n_arms=n_arms)
@@ -19,8 +19,7 @@ for i in range(n_experiments):
     reward = env.round(learner.arms[arm])
     learner.update(arm, reward)
 
-bestArm = np.argmax(learner.meanRewardPerArm)
-bestReward = learner.meanRewardPerArm[bestArm]
+bestArm, bestReward = learner.getBestArm()
 print("best arm : " + str(bestArm) + " with a mean reward of " + str(bestReward))
 print("bids of the best arm : " + str(learner.arms[bestArm]))
 
