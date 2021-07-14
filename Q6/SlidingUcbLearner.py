@@ -52,7 +52,3 @@ class SlidingUcbLearner:
             self.pulled_arms.append(arm_idx)
         self.collected_rewards.append(reward)
         self.update_estimation(arm_idx, reward)
-
-    def getBestArm(self):
-        best = np.argmax(self.meanRewardPerArm[:])
-        return best, self.meanRewardPerArm[best]

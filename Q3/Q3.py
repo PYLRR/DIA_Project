@@ -24,6 +24,7 @@ bids = np.random.randint(0, auctionHouse.MAX_BID + 1,
                          (auctionHouse.NB_ADVERTISERS, auctionHouse.NB_CATEGORIES))
 
 rewardHistory = []  # to later draw curve of evolution of reward
+rewardHistoryWithoutRollbacks = []
 labels = []  # to annotate points
 
 ### BIDS/AUCTIONS
@@ -63,6 +64,7 @@ while not stabilized:
         gain += activationProbabilities[i] * (profit - cost)
 
     rewardHistory.append(gain)
+    rewardHistoryWithoutRollbacks.append(gain)
 
     if gain >= previousReward:  # we improved
         previousReward = gain
@@ -72,18 +74,21 @@ while not stabilized:
         bids[0, currentImprovedCategory] -= 1
         nbOfTurnsWithoutImprovement += 1
         labels.append(str(currentImprovedCategory) + "-")
-        labels.append("r")
-        rewardHistory.append(previousReward)
+
+
         if nbOfTurnsWithoutImprovement >= auctionHouse.NB_CATEGORIES:
             break
 
     # change category from which we improve bid
     currentImprovedCategory = (currentImprovedCategory + 1) % auctionHouse.NB_CATEGORIES
 
+### GRAPH/OUTPUTS
+
 n = len(rewardHistory)
 print(bids)
-print(rewardHistory[n - 1])
+print(previousReward)
 
+# Best reward obtained in fct of time
 x = range(n)
 plt.xlabel('iterations')
 plt.ylabel('average reward')
@@ -96,4 +101,16 @@ for i in range(len(labels)):
     else:  # decrease of reward
         plt.annotate(labels[i][:-1], xy=(i, rewardHistory[i]), xytext=(i, rewardHistory[i] + 0.02),
                      color='red')
+plt.show()
+
+# Regret in fct of steps
+n2 = len(rewardHistoryWithoutRollbacks)
+x2 = range(n2)
+maxRewards = np.full(n2, previousReward)
+y2 = np.cumsum(rewardHistoryWithoutRollbacks)
+ymax = np.cumsum(maxRewards)
+plt.xlabel('iterations')
+plt.ylabel('regret')
+plt.title('Evolution of regret with the greedy algorithm iterations')
+plt.plot(x2, ymax - y2, 'k-')
 plt.show()

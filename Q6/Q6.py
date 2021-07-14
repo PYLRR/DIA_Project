@@ -2,24 +2,26 @@ import numpy as np
 from NonStationaryMabEnvironment import NonStationaryMabEnvironment
 from SlidingUcbLearner import SlidingUcbLearner
 from SlidingTSLearner import SlidingTSLearner
+from Q4.TSLearner import TSLearner
 import environment.auctionHouse as auctionHouse
 import matplotlib.pyplot as plt
 
 np.random.seed(1)
 
 n_arms = 15
-n_experiments = 200
+n_experiments = 1000
 lin_ucb_rewards_per_experiment = []
 
 env = NonStationaryMabEnvironment(n_arms=n_arms)
-learner = SlidingUcbLearner(env.arms)
+learner = TSLearner(env.arms)
 
 for i in range(n_experiments):
     arm = learner.pull_arm()
     reward = env.round(learner.arms[arm])
     learner.update(arm, reward)
 
-bestArm, bestReward = learner.getBestArm()
+bestArm = np.argmax(learner.meanRewardPerArm)
+bestReward = learner.meanRewardPerArm[bestArm]
 print("best arm : " + str(bestArm) + " with a mean reward of " + str(bestReward))
 print("bids of the best arm : " + str(learner.arms[bestArm]))
 

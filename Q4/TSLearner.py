@@ -29,7 +29,7 @@ class TSLearner:
         tau = self.tau[arm_idx]
         mu = self.mu[arm_idx]
         self.tau[arm_idx] = self.tau[arm_idx] + 1
-        self.mu[arm_idx] = (tau*mu + n*self.meanRewardPerArm[arm_idx])/(tau+n)
+        self.mu[arm_idx] = (tau*mu + 1*reward)/(tau+1)
 
     def update(self, arm_idx, reward):
         self.t += 1

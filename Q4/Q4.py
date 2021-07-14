@@ -12,7 +12,7 @@ n_experiments = 1000
 lin_ucb_rewards_per_experiment = []
 
 env = LinearMabEnvironment(n_arms=n_arms)
-learner = LinUcbLearner(env.arms)
+learner = TSLearner(env.arms)
 
 for i in range(n_experiments):
     arm = learner.pull_arm()
