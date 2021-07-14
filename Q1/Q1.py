@@ -10,13 +10,17 @@ AD_QUALITY = 0.7
 
 np.random.seed(0)
 
+# Ad qualities of all advertisers (0 is the learning one)
+AdQualitiesVector = np.clip(np.random.normal(0.5, 0.1, auctionHouse.NB_ADVERTISERS), 0.1, 0.9)
+AdQualitiesVector[0] = AD_QUALITY
+
 ### BIDS/AUCTIONS
 # randomize the bids, may be improved later
 bids = np.random.randint(0, auctionHouse.MAX_BID + 1,
                          (auctionHouse.NB_ADVERTISERS, auctionHouse.NB_CATEGORIES))
 
 # gets winner of each category
-winners = auctionHouse.runAuction(bids)
+winners = auctionHouse.runAuction(bids, AdQualitiesVector)
 
 ### GRAPH
 graph = graph.Graph()

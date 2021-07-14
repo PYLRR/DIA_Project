@@ -48,7 +48,7 @@ while not stabilized:
         continue
 
     # gets winner of each category
-    winners = auctionHouse.runAuction(bids)
+    winners = auctionHouse.runAuction(bids, AdQualitiesVector)
     learningAdvertiserWonAuctions = graph.updateFromAuctionResult(winners, AD_QUALITY)
 
     ### MONTECARLO

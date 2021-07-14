@@ -31,7 +31,7 @@ class LinearMabEnvironment:
         self.bids[0] = pulled_arm
 
         # gets winner of each category
-        winners = auctionHouse.runAuction(self.bids)
+        winners = auctionHouse.runAuction(self.bids, self.adQualitiesVector)
 
         self.learningAdvertiserWonAuctions = \
             self.graph.updateFromAuctionResult(winners, self.adQualitiesVector[nbAdvertiser])

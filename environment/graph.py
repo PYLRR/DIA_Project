@@ -8,7 +8,7 @@ import environment.auctionHouse as auctionHouse
 MIN_SOCIAL_INFLUENCE_PROB = 0.0
 MAX_SOCIAL_INFLUENCE_PROB = 0.5
 
-N_NODES = 25
+N_NODES = 15
 
 
 # class used to compute and then access the global graph of the project

@@ -12,14 +12,16 @@ SLOT_PROMINENCES = [0.5, 0.45, 0.35, 0.3, 0.2, 0.15]
 
 
 # input : np matrix (nbAdvertisers,nbCategories) representing the bid of each advertiser to each category
+# and np matrix (nbAdvertisers) representing the ad quality of each advertiser
 # output : np matrix (nbCategories,nbSlotsPerCategory) representing the affectation of each slot of each category
-def runAuction(bids):
+def runAuction(bids, adQualities):
     res = np.zeros((NB_CATEGORIES, NB_SLOTS_PER_CATEGORY))
     bidsToConsider = np.flip(bids, 0)
+    adQualitiesToConsider = np.flip(adQualities)
 
     for i in range(NB_CATEGORIES):
         # sort advertisers in decreasing bid order for this category
-        sorted_advertisers = bidsToConsider[np.argsort(bidsToConsider[:, i])][::-1]
+        sorted_advertisers = bidsToConsider[np.argsort(bidsToConsider[:, i] * adQualitiesToConsider[:])][::-1]
         for j in range(NB_SLOTS_PER_CATEGORY):
             # set the jth best bid of this category to the slot j
             try:
@@ -34,7 +36,7 @@ def runAuction(bids):
 # output : int cost of the click
 def computeVCG(numberOfConcernedAdvertiser, bids, adQualitiesVector, concernedCategory, concernedSlot):
     # compute Ya : cumulated reward of others
-    sBar = runAuction(bids)
+    sBar = runAuction(bids, adQualitiesVector)
     Ya = 0
     for i in range(NB_CATEGORIES):
         for j in range(NB_SLOTS_PER_CATEGORY):
@@ -44,7 +46,8 @@ def computeVCG(numberOfConcernedAdvertiser, bids, adQualitiesVector, concernedCa
 
     # compute Xa : cumulated reward of others if the concerned advertiser was not ther
     bidsWithoutAdvertiser = np.delete(bids, numberOfConcernedAdvertiser, numberOfConcernedAdvertiser)
-    smax = runAuction(bidsWithoutAdvertiser)
+    adQualitiesWithoutAdvertiser = np.delete(adQualitiesVector, numberOfConcernedAdvertiser, numberOfConcernedAdvertiser)
+    smax = runAuction(bidsWithoutAdvertiser, adQualitiesWithoutAdvertiser)
     Xa = 0
     for i in range(NB_CATEGORIES):
         for j in range(NB_SLOTS_PER_CATEGORY):
