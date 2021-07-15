@@ -4,6 +4,7 @@ from LinUcbLearner import LinUcbLearner
 from TSLearner import TSLearner
 import environment.auctionHouse as auctionHouse
 import matplotlib.pyplot as plt
+import time
 
 np.random.seed(1)
 
