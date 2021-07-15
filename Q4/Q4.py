@@ -1,6 +1,6 @@
 import numpy as np
-from LinearMabEnvironment import LinearMabEnvironment
-from LinUcbLearner import LinUcbLearner
+from MabEnvironment import MabEnvironment
+from UcbLearner import UcbLearner
 from TSLearner import TSLearner
 import environment.auctionHouse as auctionHouse
 import matplotlib.pyplot as plt
@@ -11,8 +11,8 @@ n_arms = 15
 n_experiments = 1000
 lin_ucb_rewards_per_experiment = []
 
-env = LinearMabEnvironment(n_arms=n_arms)
-learner = TSLearner(env.arms)
+env = MabEnvironment(n_arms=n_arms)
+learner = UcbLearner(env.arms)
 
 for i in range(n_experiments):
     arm = learner.pull_arm()
@@ -101,7 +101,7 @@ print("-------------")
 estimation, n = estimate_ad_quality(env.history, env.graph, env.learningAdvertiserWonAuctionsHistory, False)
 print("estimation of ad quality with all slots considered : " + str(estimation) + " vs real : " + str(
     env.adQualitiesVector[0]))
-d = 1.96 * (estimation * (1 - estimation)) ** 0.5 / n ** 0.5
+d = 1.96 * ((estimation * (1 - estimation)) ** 0.5) / (n ** 0.5)
 print("Confidence interval with 95% : [" + str(estimation - d) + ";" + str(estimation + d) + "]")
 
 

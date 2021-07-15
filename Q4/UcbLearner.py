@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class LinUcbLearner:
+class UcbLearner:
     def __init__(self, arms):
         self.arms = arms
         self.dim = arms.shape[1]

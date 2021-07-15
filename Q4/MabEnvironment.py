@@ -4,7 +4,7 @@ import environment.auctionHouse as auctionHouse
 import environment.graph as graph
 
 
-class LinearMabEnvironment:
+class MabEnvironment:
     def __init__(self, n_arms):
         self.dim = auctionHouse.NB_CATEGORIES
         self.arms = \
@@ -17,6 +17,9 @@ class LinearMabEnvironment:
 
         # the environment knows the ad quality of the ads
         self.adQualitiesVector = np.clip(np.random.normal(0.5, 0.1, auctionHouse.NB_ADVERTISERS), 0.1, 0.9)
+        AD_QUALITY = 0.8
+        self.adQualitiesVector[0] = AD_QUALITY
+
         # the environment also knows the click value for each advertiser
         self.valuesOfClick = np.clip(np.random.normal(2, 0.5, auctionHouse.NB_ADVERTISERS), 0.5, 5.0)
 
